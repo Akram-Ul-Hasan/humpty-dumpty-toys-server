@@ -1,16 +1,13 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-
 // middleware
 app.use(cors());
 app.use(express.json());
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.8bdsz2a.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -20,28 +17,40 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
   try {
-    
     await client.connect();
 
     const toyCollection = client.db("humptyDumptyToys").collection("toys");
 
-    app.post('/addToy', async (req, res) => {
+    // create method (post)
+    app.post("/toys", async (req, res) => {
       const newToy = req.body;
       console.log(newToy);
       const result = await toyCollection.insertOne(newToy);
       res.send(result);
     });
 
-
+    // read method (get)
+    app.get("/toys", async (req, res) => {
+      let query = {};
+      if(req.query?.toyName){
+        query = {toyName: req.query.toyName};
+      }
+      console.log("hitting get");
+      console.log(req.query.toyName);
+      const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // Ensures that the client will close when you finish/error
     //await client.close();
@@ -49,13 +58,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-
-
 app.get("/", (req, res) => {
-    res.send("Humpty Dumpty server is running");
-  });
+  res.send("Humpty Dumpty server is running");
+});
 
-
-  app.listen(port, () => {
-    console.log(`Humpty Dumpty server is running on port: ${port}`);
-  });
+app.listen(port, () => {
+  console.log(`Humpty Dumpty server is running on port: ${port}`);
+});
