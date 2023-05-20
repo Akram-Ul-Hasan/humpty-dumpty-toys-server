@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -26,7 +26,7 @@ async function run() {
 
     const toyCollection = client.db("humptyDumptyToys").collection("toys");
 
-    // create method (post)
+    // create operation
     app.post("/toys", async (req, res) => {
       const newToy = req.body;
       console.log(newToy);
@@ -34,15 +34,26 @@ async function run() {
       res.send(result);
     });
 
-    // read method (get)
+    // read operation
     app.get("/toys", async (req, res) => {
       let query = {};
       if(req.query?.toyName){
         query = {toyName: req.query.toyName};
       }
-      console.log("hitting get");
+      if(req.query?.sellerEmail){
+        query = {sellerEmail: req.query.sellerEmail};
+      }
       console.log(req.query.toyName);
       const result = await toyCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // Delete operation
+    app.delete('/toys/:id', async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await toyCollection.deleteOne(query);
       res.send(result);
     });
 
