@@ -39,7 +39,12 @@ async function run() {
       } else if (req.query?.category) {
         query = { category: req.query.category };
         result = await toyCollection.find(query).limit(3).toArray();
-      } else {
+      }
+      else if (req.query?.sort) {
+        const sort = req?.query?.sort === 'true' ? 1 : -1;
+        result = await toyCollection.find().sort({ price: sort }).limit(20).toArray();
+      }
+      else {
         result = await toyCollection.find().limit(20).toArray();
       }
       res.send(result);
