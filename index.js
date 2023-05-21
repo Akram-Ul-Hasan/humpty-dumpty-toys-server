@@ -29,17 +29,22 @@ async function run() {
     // read operation
     app.get("/toys", async (req, res) => {
       let query = {};
-      if(req.query?.toyName){
-        query = {toyName: req.query.toyName};
+      let result;
+      if (req.query?.toyName) {
+        query = { toyName: req.query.toyName };
+        result = await toyCollection.find(query).toArray();
+      } else if (req.query?.sellerEmail) {
+        query = { sellerEmail: req.query.sellerEmail };
+        result = await toyCollection.find(query).toArray();
+      } else if (req.query?.category) {
+        query = { category: req.query.category };
+        result = await toyCollection.find(query).limit(3).toArray();
+      } else {
+        result = await toyCollection.find().limit(20).toArray();
       }
-      if(req.query?.sellerEmail){
-        query = {sellerEmail: req.query.sellerEmail};
-      }
-      console.log(req.query.toyName);
-      const result = await toyCollection.find(query).toArray();
       res.send(result);
     });
-    
+
     // create operation
     app.post("/toys", async (req, res) => {
       const newToy = req.body;
@@ -48,10 +53,8 @@ async function run() {
       res.send(result);
     });
 
-    
-
     // read one data
-    app.get('/toys/:id', async (req, res) => {
+    app.get("/toys/:id", async (req, res) => {
       const id = req.params.id;
 
       const query = { _id: new ObjectId(id) };
@@ -60,17 +63,17 @@ async function run() {
     });
 
     // Update
-    app.patch('/toys/:id', async (req, res) => {
+    app.patch("/toys/:id", async (req, res) => {
       const id = req.params.id;
       console.log(id);
-      console.log('hitting')
+      console.log("hitting");
       const filter = { _id: new ObjectId(id) };
       const updatedToy = req.body;
       const updateDoc = {
         $set: {
           price: updatedToy.price,
           quantity: updatedToy.quantity,
-          description: updatedToy.description
+          description: updatedToy.description,
         },
       };
       const result = await toyCollection.updateOne(filter, updateDoc);
@@ -78,7 +81,7 @@ async function run() {
     });
 
     // Delete operation
-    app.delete('/toys/:id', async (req, res) => {
+    app.delete("/toys/:id", async (req, res) => {
       const id = req.params.id;
       console.log(id);
       const query = { _id: new ObjectId(id) };
